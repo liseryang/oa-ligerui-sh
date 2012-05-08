@@ -1,0 +1,178 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<TITLE> Delete comment </TITLE>
+<META NAME="Author" CONTENT="zc-peng">
+</HEAD>
+
+<BODY>
+<textarea style="height:300;width:500" name="t1" onpropertychange="deleteComment()"></textarea>
+<textarea style="height:300;width:500" name="t2"></textarea>
+</BODY>
+<script>
+
+function deleteComment(){
+
+    var t1_Content = document.all.t1.value;
+
+    //输出变量
+    var result = "";
+
+    //全局标志，用于处理多行注释
+    var flag = false;
+
+    //按行劈开，b是字符串数组
+    var b = t1_Content.split("/r/n");
+
+    //for per row
+    //对于每一行
+    for(var i = 0;i<b.length;i++){
+        var perRow = b[i];//当前行的字符串
+        //如果是多行注释
+        if(flag == true){
+            //判断是否存在多行注释的结束符
+            if(perRow.indexOf("*/") != -1){        
+                //exist "*/"
+                //delete comment
+                //取*/后面的字符
+                perRow = perRow.substr(perRow.indexOf("*/") + 2);
+                //把多行注释标志复位，下次用
+                flag = false;
+                //流程继续往下走，因为这一行剩下的字符串可能还有注释
+            }else{
+                //不存在，表明当前行仍然是多行注释的一部分，继续检查下一行
+                //而且不把此行累加到输出变量中
+                continue;//流程不往下走
+            }
+        }
+
+        //对于每一行，判断是否存在双引号"或者注释起始符/
+        if(perRow.indexOf("\"") == -1 && perRow.indexOf("/") == -1){
+            //neither " nor / exsit in perRow
+            //do nothing
+            //两者都不存在，什么也不用做，检查下一行
+        }else if(perRow.indexOf("\"") != -1 && perRow.indexOf("/") == -1){
+            //only " exist in perRow
+            //do nothing
+            //只存在双引号，也是什么都不用做，检查下一行
+            //以上两个判断可以简化成一个
+        }else{
+            //如果存在"或者/，或者两者都存在
+            //在每一行中，对每一个字符进行判断
+            //for per character
+            for(var j = 0;j<perRow.length;j++){
+                //取出每一个字符
+                var tempChar = perRow.substr(j,1);//per char
+                //如果是"的话，必须进行下一个"的匹配
+                if(tempChar == "\""){
+                    //算出下一个字符的位置(index)
+                    var tempCol = j+1;
+                    if(tempCol == perRow.length){
+                        //如果没有下一个字符，则检查下一行
+                        //觉得不要这个判断也可以，因为需要处理的代码都是编译正确的代码，
+                        //不会出现这种情况的
+                        //结束当前行处理，进行结果累加
+                        break;//next row
+                    }else{
+                        //如果有下一个字符，循环判断
+                        for(var k = tempCol;k<perRow.length;k++){
+                            //取出下一个字符
+                            var nextChar = perRow.substr(k,1);
+                            //如果是"的话，还得判断它的前一个字符是否是转义字符/
+                            if(nextChar == "\""){
+                                //取出它的前一个字符
+                                var temp = perRow.substr(k-1,1);
+                                //如果是转义字符的话
+                                if(temp == "//"){
+                                    //继续检查下一个字符
+                                    continue;
+                                }else{
+                                    //match "..."
+                                    //如果不是/，则匹配上一对"
+                                    j = k;
+                                    //跳出字符串双引号的匹配循环，进行下一个字符的检查
+                                    break;//next col
+                                }
+                            }
+                        }
+                    }
+                }else if(tempChar == "/"){
+                    //如果是注释起始符的话，
+                    //算出下一个字符的位置
+                    var tempCol = j+1;
+                    if(tempCol == perRow.length){
+                        //如果没有下一个字符，则结束当前行处理，进行结果累加
+                        break;//next row
+                    }else{
+                        //如果下一个字符是/的话，还得判断前面那个字符是不是转移字符，
+                        //这样做的目的是避免js中的正则表达式
+                        if(perRow.substr(tempCol,1) == "/"){
+                            //判断是不是第一个字符
+                            if(j != 0){
+                                //不是第一个的话，看它前面的字符是否是/
+                                if(perRow.substr(j - 1,1) == "//"){
+                                    //regExp
+                                    //like : ///*asdf*///
+                                    //如果是的话，则表明这是一个正则表达式，不是注释，
+                                    //则对此行的下一个字符进行检查
+                                    continue;
+                                }
+                            }
+                            //如果当前字符是/，它的下一个字符也是/，它的前一个字符不是/，则表明这是一个单行注释
+                            //则取这个字符的前面的字符串作为删掉注释后的结果，累加到输出变量
+                            //delete comment
+                            perRow = perRow.substr(0,j);
+                            //跳出，结束当前行处理，进行结果累加
+                            break;//next row
+                        }else if(perRow.substr(tempCol,1) == "*"){
+                            //也是为了避免js的正则表达式
+                            if(j != 0){
+                                if(perRow.substr(j - 1,1) == "//"){
+                                    //regExp
+                                    //like : ///*asdf*///
+                                    continue;
+                                }
+                            }
+                            //如果当前字符是/，它的下一个字符是*，它的前一个字符不是/，则表明这是一个/*形式的注释
+                            //把多行注释标志置成true
+                            flag = true;
+                            //把此行剩下的字符串取出
+                            var temp = perRow.substr(j + 2);
+                            //看看剩下的字符串里面有没有*/
+                            if(temp.indexOf("*/") != -1){
+                                //delete comment
+                                //如果有的话，则把/*...*/这样的注释删掉
+                                perRow = perRow.substr(0,j) + temp.substr(temp.indexOf("*/") + 2);
+                                //把标志复位，表明删除完毕
+                                flag = false;
+                                //因为删掉注释以后，j已经指向下一个字符，而这个逻辑处理完毕之后，
+                                //会执行for(每一行)的循环的j++，这样就会跳过一个字符，
+                                //所以需要先j--
+                                j--;//important
+                            }else{
+                                //delete comment
+                                //如果在此行剩下的字符串没有发现*/，则表明这是一个多行注释
+                                //删掉剩下的字符串(取出前面的字符串作为结果)
+                                perRow = perRow.substr(0,j);
+                                //结束当前行处理，结果累加
+                                break;//next row
+                            }
+                        }else{
+                            //下一个字符既不是/也不是*，
+                            //那么，这不是一个注释起始符，进行下一个字符的检查
+                            continue;
+                        }
+                    }
+                }
+            }        
+        }
+        
+        //进行下一行之前，把结果累加到输出变量
+        result += perRow + "/r/n";
+    }
+
+    document.all.t2.value = result;
+
+}
+</script>
+</HTML>

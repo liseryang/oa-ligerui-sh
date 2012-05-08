@@ -1,1 +1,2 @@
-<% response.sendRedirect("account/user/"); %>   
+<% response.sendRedirect("backcontrol/checkLogin.htm"); %>   
+

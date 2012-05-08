@@ -26,9 +26,11 @@ import com.suncco.oa.service.account.AccountService;
 public class AccountServiceImpl  implements AccountService {
 
 	private static Logger logger = LoggerFactory.getLogger(AccountServiceImpl.class);
-
+	@Autowired
 	private UserDao userDao;
+	@Autowired
 	private GroupDao groupDao;
+	@Autowired(required = false)
 	private ShiroDbRealmImpl shiroRealm;
 
 	//-- User Manager --//
@@ -101,18 +103,4 @@ public class AccountServiceImpl  implements AccountService {
 		shiroRealm.clearAllCachedAuthorizationInfo();
 	}
 
-	@Autowired
-	public void setUserDao(UserDao userDao) {
-		this.userDao = userDao;
-	}
-
-	@Autowired
-	public void setGroupDao(GroupDao groupDao) {
-		this.groupDao = groupDao;
-	}
-
-	@Autowired(required = false)
-	public void setShiroRealm(ShiroDbRealmImpl shiroRealm) {
-		this.shiroRealm = shiroRealm;
-	}
 }

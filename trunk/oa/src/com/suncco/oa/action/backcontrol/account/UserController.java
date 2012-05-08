@@ -1,6 +1,9 @@
 package com.suncco.oa.action.backcontrol.account;
 
 import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -15,7 +18,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.suncco.oa.entity.account.User;
+import com.suncco.oa.service.ServiceException;
 import com.suncco.oa.service.account.AccountService;
+import com.suncco.oa.utils.JsonMap;
 
 /**
  * Urls:
@@ -31,25 +36,32 @@ import com.suncco.oa.service.account.AccountService;
  *
  */
 @Controller
-@RequestMapping(value = "/account/user")
+@RequestMapping(value = "/backcontrol/account/user")
 public class UserController {
 
 	private AccountService accountManager;
 
-	private GroupListEditor groupListEditor;
-
-	@InitBinder
-	public void initBinder(WebDataBinder b) {
-		b.registerCustomEditor(List.class, "groupList", groupListEditor);
-	}
-
-	@RequestMapping(value = { "list", "" })
+	/*@RequestMapping(value = { "list", "" })
 	public String list(Model model) {
 		List<User> users = accountManager.getAllUser();
 		model.addAttribute("users", users);
 		return "account/userList";
+	}*/
+	
+	@RequestMapping(value = "/list.htm", method = RequestMethod.GET)
+	public String list() throws ServiceException {
+		return "user/user";
 	}
 
+	@RequestMapping(value = "/getJson.htm", method = RequestMethod.POST)
+	public @ResponseBody
+	Map<String, Object> getJson(HttpServletRequest request) throws ServiceException {
+		List<User> list = accountManager.getAllUser();
+		Map<String, Object>  map = JsonMap.getJsonMap(5, list);
+		System.out.println(map);
+		return map;
+	}
+	
 	@RequestMapping(value = "create", method = RequestMethod.GET)
 	public String createForm(Model model) {
 		model.addAttribute("user", new User());
@@ -87,11 +99,6 @@ public class UserController {
 	@Autowired
 	public void setAccountManager(AccountService accountManager) {
 		this.accountManager = accountManager;
-	}
-
-	@Autowired
-	public void setGroupListEditor(GroupListEditor groupListEditor) {
-		this.groupListEditor = groupListEditor;
 	}
 
 }

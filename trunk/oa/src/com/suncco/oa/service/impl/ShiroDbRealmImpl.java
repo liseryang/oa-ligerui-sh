@@ -16,7 +16,7 @@ import com.suncco.oa.entity.account.Group;
 import com.suncco.oa.entity.account.User;
 
 public class ShiroDbRealmImpl extends AuthorizingRealm {
-
+	@Autowired
 	private AccountServiceImpl accountManager;
 
 	/**
@@ -69,8 +69,4 @@ public class ShiroDbRealmImpl extends AuthorizingRealm {
 		}
 	}
 
-	@Autowired
-	public void setAccountManager(AccountServiceImpl accountManager) {
-		this.accountManager = accountManager;
-	}
 }

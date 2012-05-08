@@ -1,7 +1,6 @@
 package com.suncco.oa.action.backcontrol.account;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,7 +15,8 @@ import com.suncco.oa.service.account.AccountService;
 @Controller
 @RequestMapping(value = "/account/group")
 public class GroupController {
-
+	
+	@Autowired
 	private AccountService accountManager;
 
 	@RequestMapping(value = { "list", "" })
@@ -45,11 +45,6 @@ public class GroupController {
 		accountManager.deleteGroup(id);
 		redirectAttributes.addFlashAttribute("message", "删除权限组成功");
 		return "redirect:/account/group/";
-	}
-
-	@Autowired
-	public void setAccountManager(AccountService accountManager) {
-		this.accountManager = accountManager;
 	}
 
 }
